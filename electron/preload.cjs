@@ -15,6 +15,8 @@ contextBridge.exposeInMainWorld('carnetMedical', {
   loginDoctor: (data) =>
     ipcRenderer.invoke('auth:login', data),
 
+    logoutDoctor: () => ipcRenderer.invoke('auth:logout'),
+
   // Patients
   listPatients: (medecinId) =>
     ipcRenderer.invoke('patients:list', medecinId),

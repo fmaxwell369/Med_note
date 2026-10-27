@@ -8,6 +8,21 @@ export default function App() {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [doctor, setDoctor] = useState(null);
+  const [patients, setPatients] = useState([]);
+  const [patientsLoading, setPatientsLoading] = useState(false);
+  const [patientError, setPatientError] = useState('');
+  const [showPatientForm, setShowPatientForm] = useState(false);
+  const [patientSubmitting, setPatientSubmitting] = useState(false);
+  const [patientSuccess, setPatientSuccess] = useState('');
+
+  const [patientForm, setPatientForm] = useState({
+    nom: '',
+    prenom: '',
+    dateNaissance: '',
+    sexe: '',
+    telephone: '',
+    adresse: '',
+  });
 
   const [form, setForm] = useState({
     nom: '',
@@ -46,6 +61,45 @@ export default function App() {
     };
   }, []);
 
+    useEffect(() => {
+    if (!doctor) {
+      setPatients([]);
+      setPatientError('');
+      return;
+    }
+
+    let active = true;
+
+    async function loadPatients() {
+      setPatientsLoading(true);
+      setPatientError('');
+
+      try {
+        const result = await window.carnetMedical.listPatients();
+
+        if (active) {
+          setPatients(result);
+        }
+      } catch (err) {
+        if (active) {
+          setPatientError(
+            err.message || 'Impossible de charger les patients.'
+          );
+        }
+      } finally {
+        if (active) {
+          setPatientsLoading(false);
+        }
+      }
+    }
+
+    loadPatients();
+
+    return () => {
+      active = false;
+    };
+  }, [doctor]);
+
   function updateField(event) {
     const { name, value } = event.target;
     setForm((previous) => ({ ...previous, [name]: value }));
@@ -70,11 +124,14 @@ export default function App() {
           motDePasse: form.motDePasse,
         });
 
-        setDoctor({
-          nom: form.nom.trim(),
-          prenom: form.prenom.trim(),
-          email: form.email.trim().toLowerCase(),
-        });
+      setSetupRequired(false);
+      setForm({
+        nom: '',
+        prenom: '',
+        email: form.email.trim().toLowerCase(),
+        motDePasse: '',
+        confirmation: '',
+      });
 
         setSuccess('');
         setError('');
@@ -97,17 +154,81 @@ export default function App() {
     }
   }
 
-  function logout() {
-    setDoctor(null);
-    setForm({
-      nom: '',
-      prenom: '',
-      email: '',
-      motDePasse: '',
-      confirmation: '',
-    });
-    setSuccess('');
-    setError('');
+  async function logout() {
+  try {
+    await window.carnetMedical.logoutDoctor();
+  } catch (err) {
+    setError(err.message || 'Impossible de fermer la session.');
+    return;
+  }
+
+  setDoctor(null);
+  setForm({
+    nom: '',
+    prenom: '',
+    email: '',
+    motDePasse: '',
+    confirmation: '',
+  });
+  setSuccess('');
+  setError('');
+}
+
+  function updatePatientField(event) {
+    const { name, value } = event.target;
+
+    setPatientForm((previous) => ({
+      ...previous,
+      [name]: value,
+    }));
+  }
+
+  async function handlePatientSubmit(event) {
+    event.preventDefault();
+    setPatientError('');
+    setPatientSuccess('');
+    setPatientSubmitting(true);
+
+    try {
+      const result = await window.carnetMedical.createPatient({
+        nom: patientForm.nom,
+        prenom: patientForm.prenom,
+        dateNaissance: patientForm.dateNaissance || null,
+        sexe: patientForm.sexe || null,
+        telephone: patientForm.telephone,
+        adresse: patientForm.adresse,
+      });
+
+      if (result?.duplicate) {
+        setPatientError(
+          result.message || 'Ce patient semble déjà enregistré.'
+        );
+        return;
+      }
+
+      const updatedPatients = await window.carnetMedical.listPatients();
+      setPatients(updatedPatients);
+
+      setPatientForm({
+        nom: '',
+        prenom: '',
+        dateNaissance: '',
+        sexe: '',
+        telephone: '',
+        adresse: '',
+      });
+
+      setShowPatientForm(false);
+      setPatientSuccess(
+        result?.message || 'Patient enregistré avec succès.'
+      );
+    } catch (err) {
+      setPatientError(
+        err.message || 'Impossible d’enregistrer le patient.'
+      );
+    } finally {
+      setPatientSubmitting(false);
+    }
   }
 
   if (loading) {
@@ -140,11 +261,139 @@ export default function App() {
           <p>Votre compte a été vérifié.</p>
         </section>
 
+                <section className="dashboard-summary">
+          <article className="stat-card">
+            <p className="stat-label">Patients actifs</p>
+            <h3>{patientsLoading ? '…' : patients.length}</h3>
+            <p className="stat-description">
+              Dossiers non archivés
+            </p>
+          </article>
+        </section>
+
         <section className="dashboard">
-          <article className="card">
+                    <article className="card">
             <div className="card-icon">♙</div>
             <h3>Patients</h3>
-            <p>Le module de gestion des patients reste à connecter à une session sécurisée.</p>
+                        <button
+              type="button"
+              onClick={() => {
+                setShowPatientForm((previous) => !previous);
+                setPatientError('');
+                setPatientSuccess('');
+              }}
+            >
+              {showPatientForm ? 'Annuler' : 'Nouveau patient'}
+            </button>
+
+            {patientSuccess && (
+              <p className="success-message">{patientSuccess}</p>
+            )}
+
+            {showPatientForm && (
+              <form onSubmit={handlePatientSubmit}>
+                <label>
+                  Nom *
+                  <input
+                    name="nom"
+                    value={patientForm.nom}
+                    onChange={updatePatientField}
+                    required
+                  />
+                </label>
+
+                <label>
+                  Prénom *
+                  <input
+                    name="prenom"
+                    value={patientForm.prenom}
+                    onChange={updatePatientField}
+                    required
+                  />
+                </label>
+
+                <label>
+                  Date de naissance
+                  <input
+                    type="date"
+                    name="dateNaissance"
+                    value={patientForm.dateNaissance}
+                    onChange={updatePatientField}
+                  />
+                </label>
+
+                <label>
+                  Sexe
+                  <select
+                    name="sexe"
+                    value={patientForm.sexe}
+                    onChange={updatePatientField}
+                  >
+                    <option value="">Non renseigné</option>
+                    <option value="M">Masculin</option>
+                    <option value="F">Féminin</option>
+                    <option value="Autre">Autre</option>
+                  </select>
+                </label>
+
+                <label>
+                  Téléphone
+                  <input
+                    type="tel"
+                    name="telephone"
+                    value={patientForm.telephone}
+                    onChange={updatePatientField}
+                  />
+                </label>
+
+                <label>
+                  Adresse
+                  <input
+                    name="adresse"
+                    value={patientForm.adresse}
+                    onChange={updatePatientField}
+                  />
+                </label>
+
+                <button type="submit" disabled={patientSubmitting}>
+                  {patientSubmitting
+                    ? 'Enregistrement...'
+                    : 'Enregistrer le patient'}
+                </button>
+              </form>
+            )}
+
+            {patientsLoading && <p>Chargement des patients...</p>}
+
+            {patientError && (
+              <p className="error-message">{patientError}</p>
+            )}
+
+            {!patientsLoading && !patientError && (
+              <>
+                <p>
+                  {patients.length} patient(s) enregistré(s)
+                </p>
+
+                {patients.length === 0 ? (
+                  <p>Aucun patient enregistré pour le moment.</p>
+                ) : (
+                  <ul>
+                    {patients.map((patient) => (
+                      <li key={patient.id}>
+                        <strong>
+                          {patient.nom} {patient.prenom}
+                        </strong>
+                        <br />
+                        Dossier : {patient.numero_dossier}
+                        <br />
+                        Téléphone : {patient.telephone || 'Non renseigné'}
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </>
+            )}
           </article>
 
           <article className="card">

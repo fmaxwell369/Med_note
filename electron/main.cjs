@@ -6,6 +6,7 @@ const path = require('node:path');
 const Database = require('better-sqlite3');
 
 let db;
+let sessionMedecin = null;
 
 function connectDatabase() {
   // Utilise la base existante à la racine du projet en développement.
@@ -126,25 +127,34 @@ function registerDatabaseHandlers() {
       throw new Error('E-mail ou mot de passe incorrect.');
     }
 
+    sessionMedecin = {
+      id: medecin.id,
+      nom: medecin.nom,
+      prenom: medecin.prenom,
+      email: medecin.email
+    };
+
     return {
       success: true,
-      medecin: {
-        id: medecin.id,
-        nom: medecin.nom,
-        prenom: medecin.prenom,
-        email: medecin.email
-      }
+      medecin: sessionMedecin
     };
   });
 
-  ipcMain.handle('patients:list', (_event, medecinId) => {
+  ipcMain.handle('auth:logout', () => {
+    sessionMedecin = null;
+    return { success: true };
+  });
+
+  ipcMain.handle('patients:list', (_event) => {
     if (!db) {
       throw new Error('La base de données n’est pas connectée.');
     }
 
-    if (typeof medecinId !== 'string' || !medecinId.trim()) {
-      throw new Error('Identifiant du médecin invalide.');
+    if (!sessionMedecin) {
+      throw new Error('Vous devez vous connecter pour accéder aux patients.');
     }
+
+    const medecinId = sessionMedecin.id;
 
     return db.prepare(`
       SELECT
@@ -165,6 +175,9 @@ function registerDatabaseHandlers() {
   });
 
   ipcMain.handle('patients:create', (_event, patient) => {
+    if (!sessionMedecin) {
+      throw new Error('Vous devez vous connecter pour enregistrer un patient.');
+    }
     if (!db) {
       throw new Error('La base de données n’est pas connectée.');
     }
@@ -173,7 +186,7 @@ function registerDatabaseHandlers() {
       throw new Error('Données du patient invalides.');
     }
 
-    const requiredFields = ['medecinId', 'numeroDossier', 'nom', 'prenom'];
+    const requiredFields = ['nom', 'prenom'];
 
     for (const field of requiredFields) {
       if (
@@ -185,15 +198,59 @@ function registerDatabaseHandlers() {
     }
 
     const medecin = db.prepare(`
-      SELECT id FROM medecins
-      WHERE id = ? AND actif = 1
-    `).get(patient.medecinId.trim());
+      SELECT id FROM medecins WHERE id = ? AND actif = 1
+    `).get(sessionMedecin.id);
 
     if (!medecin) {
       throw new Error('Médecin introuvable ou inactif.');
     }
+        const nom = patient.nom.trim();
+    const prenom = patient.prenom.trim();
+    const telephone = typeof patient.telephone === 'string'
+      ? patient.telephone.trim()
+      : '';
+
+    if (telephone) {
+      const doublon = db.prepare(`
+        SELECT id, numero_dossier, nom, prenom, telephone
+        FROM patients
+        WHERE medecin_id = ?
+          AND archive = 0
+          AND nom = ? COLLATE NOCASE
+          AND prenom = ? COLLATE NOCASE
+          AND telephone = ?
+        LIMIT 1
+      `).get(
+        sessionMedecin.id,
+        nom,
+        prenom,
+        telephone
+      );
+
+      if (doublon) {
+        return {
+          duplicate: true,
+          existingPatient: doublon,
+          message: 'Un patient portant le même nom, prénom et téléphone existe déjà.'
+        };
+      }
+    }
 
     const id = require('node:crypto').randomUUID();
+      const dernierDossier = db.prepare(`
+      SELECT numero_dossier
+      FROM patients
+      WHERE medecin_id = ?
+        AND numero_dossier GLOB 'PAT-[0-9]*'
+      ORDER BY CAST(SUBSTR(numero_dossier, 5) AS INTEGER) DESC
+      LIMIT 1
+    `).get(sessionMedecin.id);
+
+    const prochainNumero = dernierDossier
+      ? Number(dernierDossier.numero_dossier.slice(4)) + 1
+      : 1;
+
+    const numeroDossier = `PAT-${String(prochainNumero).padStart(4, '0')}`;
 
     db.prepare(`
       INSERT INTO patients (
@@ -202,8 +259,8 @@ function registerDatabaseHandlers() {
       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
     `).run(
       id,
-      patient.medecinId.trim(),
-      patient.numeroDossier.trim(),
+      sessionMedecin.id,
+      numeroDossier,
       patient.nom.trim(),
       patient.prenom.trim(),
       patient.dateNaissance || null,

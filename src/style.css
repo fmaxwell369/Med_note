@@ -250,3 +250,480 @@ footer {
     padding: 20px;
   }
 }
+
+/* =========================================
+   FORMULAIRES — STYLE COMMUN CARNET MÉDICAL
+   ========================================= */
+
+.card form:not(.auth-card form) {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px 20px;
+  margin-top: 22px;
+  width: 100%;
+}
+
+.card form label {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 8px;
+  min-width: 0;
+  margin: 0;
+  color: #29483c;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+.card form input,
+.card form select,
+.card form textarea,
+.auth-card form select,
+.auth-card form textarea {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  min-height: 46px;
+  padding: 11px 13px;
+  border: 1px solid #cbd9d1;
+  border-radius: 10px;
+  background: #fff;
+  color: #18332b;
+  font: inherit;
+  font-size: 15px;
+  transition: border-color 160ms ease, box-shadow 160ms ease;
+}
+
+.card form textarea,
+.auth-card form textarea {
+  min-height: 110px;
+  resize: vertical;
+}
+
+.card form input:focus,
+.card form select:focus,
+.card form textarea:focus,
+.auth-card form select:focus,
+.auth-card form textarea:focus {
+  border-color: #23956b;
+  outline: none;
+  box-shadow: 0 0 0 3px rgb(35 149 107 / 13%);
+}
+
+.card form input::placeholder,
+.card form textarea::placeholder {
+  color: #8a9991;
+}
+
+.card form button,
+.card > button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: fit-content;
+  max-width: 100%;
+  min-height: 44px;
+  padding: 11px 18px;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  background: #23956b;
+  color: #fff;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  transition: background 160ms ease, transform 160ms ease;
+}
+
+.card form button {
+  grid-column: 1 / -1;
+  justify-self: start;
+}
+
+.card form button:hover,
+.card > button:hover {
+  background: #197a56;
+}
+
+.card form button:active,
+.card > button:active {
+  transform: translateY(1px);
+}
+
+.card form button:focus-visible,
+.card > button:focus-visible,
+.header button:focus-visible,
+.auth-card button:focus-visible {
+  outline: 3px solid rgb(35 149 107 / 30%);
+  outline-offset: 2px;
+}
+
+.card form button:disabled {
+  cursor: not-allowed;
+  opacity: 0.65;
+}
+
+.card .success-message,
+.card .form-success {
+  padding: 12px 14px;
+  border: 1px solid #c7ead5;
+  border-radius: 10px;
+  background: #effaf3;
+  color: #176b46;
+  font-size: 14px;
+}
+
+.card .error-message,
+.card .form-error {
+  padding: 12px 14px;
+  border: 1px solid #f1cccc;
+  border-radius: 10px;
+  background: #fff3f3;
+  color: #a52626;
+  font-size: 14px;
+}
+
+.card ul {
+  display: grid;
+  gap: 12px;
+  margin: 18px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.card ul li {
+  padding: 14px;
+  border: 1px solid #e0e9e4;
+  border-radius: 10px;
+  background: #f8fbf9;
+  color: #52665c;
+  font-size: 14px;
+  line-height: 1.8;
+  overflow-wrap: anywhere;
+}
+
+.card ul li strong {
+  color: #18332b;
+  font-size: 15px;
+}
+
+/* Adaptation aux écrans étroits */
+@media (max-width: 600px) {
+  .card form:not(.auth-card form) {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 15px;
+  }
+
+  .card form button {
+    grid-column: auto;
+    width: 100%;
+  }
+
+  .card > button {
+    width: 100%;
+  }
+}
+
+/* =========================================
+   AUTHENTIFICATION — DESIGN HARMONISÉ
+   ========================================= */
+
+.auth-card {
+  padding: clamp(24px, 4vw, 38px);
+  border: 1px solid #dce7e1;
+  border-radius: 20px;
+  background: #ffffff;
+  box-shadow: 0 16px 45px rgb(25 65 45 / 8%);
+}
+
+.auth-card h3 {
+  margin: 0 0 24px;
+  color: #18332b;
+  font-size: 24px;
+  font-weight: 700;
+  line-height: 1.3;
+}
+
+.auth-card form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.auth-card form label {
+  display: block;
+  margin: 7px 0 0;
+  color: #29483c;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.5;
+}
+
+.auth-card form input,
+.auth-card form select,
+.auth-card form textarea {
+  display: block;
+  width: 100%;
+  min-height: 48px;
+  margin-top: 2px;
+  padding: 12px 14px;
+  border: 1px solid #cbd9d1;
+  border-radius: 10px;
+  background: #fbfdfb;
+  color: #18332b;
+  font: inherit;
+  font-size: 15px;
+  outline: none;
+  transition: border-color 160ms ease, box-shadow 160ms ease,
+    background 160ms ease;
+}
+
+.auth-card form input:focus,
+.auth-card form select:focus,
+.auth-card form textarea:focus {
+  border-color: #23956b;
+  background: #ffffff;
+  box-shadow: 0 0 0 4px rgb(35 149 107 / 12%);
+}
+
+.auth-card form button {
+  width: 100%;
+  min-height: 48px;
+  margin-top: 18px;
+  padding: 13px 18px;
+  border: none;
+  border-radius: 10px;
+  background: #23956b;
+  color: #ffffff;
+  font-size: 15px;
+  font-weight: 700;
+  transition: background 160ms ease, transform 160ms ease;
+}
+
+.auth-card form button:hover {
+  background: #197a56;
+}
+
+.auth-card form button:active {
+  transform: translateY(1px);
+}
+
+.auth-card form button:disabled {
+  cursor: wait;
+  opacity: 0.7;
+}
+
+.auth-card .form-error,
+.auth-card .form-success {
+  margin: 0 0 16px;
+  padding: 13px 15px;
+  border-radius: 10px;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.auth-card .form-error {
+  border: 1px solid #f1cccc;
+  background: #fff3f3;
+  color: #a52626;
+}
+
+.auth-card .form-success {
+  border: 1px solid #c7ead5;
+  background: #effaf3;
+  color: #176b46;
+}
+
+@media (max-width: 600px) {
+  .auth-card {
+    padding: 22px 18px;
+    border-radius: 16px;
+  }
+
+  .auth-card h3 {
+    font-size: 21px;
+  }
+}
+
+/* =========================================
+   TABLEAU DE BORD — CARTES ET ESPACEMENTS
+   ========================================= */
+
+.dashboard {
+  align-items: start;
+  gap: 22px;
+}
+
+.dashboard > .card {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  transition: box-shadow 180ms ease, border-color 180ms ease;
+}
+
+.dashboard > .card:hover {
+  border-color: #c8ddd1;
+  box-shadow: 0 8px 26px rgb(25 65 45 / 7%);
+}
+
+.dashboard > .card h3 {
+  color: #18332b;
+  line-height: 1.4;
+}
+
+.dashboard > .card > .card-icon {
+  display: grid;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 14px;
+  background: #eaf7f0;
+  color: #23956b;
+  font-size: 25px;
+}
+
+.dashboard > .card > p {
+  line-height: 1.7;
+}
+
+.dashboard > .card > button {
+  margin: 8px 0 12px;
+}
+
+.dashboard > .card > p.success-message,
+.dashboard > .card > p.error-message {
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 900px) {
+  .dashboard {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .dashboard > .card:first-child {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 600px) {
+  .dashboard {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 16px;
+  }
+
+  .dashboard > .card:first-child {
+    grid-column: auto;
+  }
+
+  .dashboard > .card {
+    padding: 20px;
+  }
+}
+
+/* =========================================
+   LISTE DES PATIENTS — DOSSIERS
+   ========================================= */
+
+.card ul {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin: 18px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.card ul li {
+  padding: 17px 18px;
+  border: 1px solid #dce8e1;
+  border-left: 4px solid #23956b;
+  border-radius: 12px;
+  background: #f8fbf9;
+  color: #617168;
+  font-size: 13px;
+  line-height: 1.9;
+  overflow-wrap: anywhere;
+  transition: background 160ms ease, border-color 160ms ease;
+}
+
+.card ul li:hover {
+  border-color: #b8d9c7;
+  background: #f0f8f3;
+}
+
+.card ul li strong {
+  display: block;
+  margin-bottom: 5px;
+  color: #18332b;
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 1.5;
+}
+
+.card > p {
+  line-height: 1.7;
+}
+
+.card > p.success-message,
+.card > p.error-message {
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 600px) {
+  .card ul li {
+    padding: 14px;
+    font-size: 13px;
+  }
+
+  .card ul li strong {
+    font-size: 15px;
+  }
+}
+
+/* Statistiques du tableau de bord */
+.dashboard-summary {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 20px;
+  margin: 0 0 28px;
+}
+
+.stat-card {
+  padding: 24px;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 16px;
+  box-shadow: 0 4px 14px rgba(15, 23, 42, 0.05);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.stat-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 22px rgba(15, 23, 42, 0.08);
+}
+
+.stat-label {
+  margin: 0 0 12px;
+  color: #64748b;
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
+.stat-card h3 {
+  margin: 0;
+  color: #0f172a;
+  font-size: 2.2rem;
+  font-weight: 700;
+}
+
+.stat-description {
+  margin: 10px 0 0;
+  color: #64748b;
+  font-size: 0.85rem;
+}
+
+@media (max-width: 600px) {
+  .dashboard-summary {
+    grid-template-columns: 1fr;
+  }
+}
