@@ -1,0 +1,24 @@
+# Dépendances
+node_modules/
+
+# Fichiers de compilation
+dist/
+out/
+release/
+
+# Bases de données médicales et sauvegardes
+*.db
+*.db-journal
+*.sqlite
+*.sqlite3
+*.backup.db
+*.sqbpro
+
+# Variables d'environnement et secrets
+.env
+.env.*
+!.env.example
+
+# Fichiers système et éditeur
+.DS_Store
+.vscode/
