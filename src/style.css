@@ -727,3 +727,1424 @@ footer {
     grid-template-columns: 1fr;
   }
 }
+
+/* Fiche détaillée du patient */
+.patient-details {
+  margin: 24px 0;
+  padding: 24px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+}
+
+.patient-details-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.patient-details-header h4 {
+  margin: 0;
+  color: #0f172a;
+  font-size: 1.15rem;
+}
+
+.patient-details p {
+  margin: 12px 0;
+  color: #334155;
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+}
+
+.patient-details p strong {
+  color: #0f172a;
+}
+
+.patient-name-button {
+  display: inline;
+  padding: 0;
+  background: transparent;
+  border: none;
+  color: #2563eb;
+  font: inherit;
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+}
+
+.patient-name-button:hover {
+  color: #1d4ed8;
+  text-decoration: underline;
+}
+
+.patient-name-button:focus-visible {
+  outline: 2px solid #2563eb;
+  outline-offset: 4px;
+  border-radius: 2px;
+}
+
+@media (max-width: 600px) {
+  .patient-details {
+    padding: 16px;
+  }
+
+  .patient-details-header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}
+
+/* Impression des ordonnances */
+@media print {
+  @page {
+    size: A4;
+    margin: 18mm;
+  }
+
+  body * {
+    visibility: hidden;
+  }
+
+  .ordonnance-print,
+  .ordonnance-print * {
+    visibility: visible;
+  }
+
+  .ordonnance-print {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    color: #000;
+    background: #fff;
+    font-family: Arial, sans-serif;
+    font-size: 12pt;
+  }
+
+  .ordonnance-actions,
+  .no-print {
+    display: none !important;
+  }
+
+  .ordonnance-print h2 {
+    text-align: center;
+    text-transform: uppercase;
+    margin-bottom: 24px;
+  }
+
+  .ordonnance-print h3 {
+    margin-top: 20px;
+    border-bottom: 1px solid #999;
+    padding-bottom: 6px;
+  }
+
+  .ordonnance-print p {
+    line-height: 1.5;
+    margin: 6px 0;
+  }
+}
+
+/* =====================================================
+   CARNET MÉDICAL — REFONTE VISUELLE
+   CSS UNIQUEMENT — AUCUNE MODIFICATION FONCTIONNELLE
+   ===================================================== */
+
+:root {
+  --primary: #147d64;
+  --primary-dark: #10634f;
+  --primary-light: #e6f4ee;
+  --background: #f3f7f5;
+  --surface: #ffffff;
+  --text: #19372e;
+  --muted: #74867e;
+  --border: #e1ebe5;
+  --shadow: 0 8px 30px rgba(24, 65, 48, 0.055);
+  --shadow-hover: 0 14px 35px rgba(24, 65, 48, 0.10);
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background:
+    radial-gradient(circle at top right, #e6f4ed 0, transparent 35%),
+    var(--background);
+  color: var(--text);
+}
+
+/* Conteneur principal */
+
+.app {
+  width: min(1200px, calc(100% - 56px));
+  padding: 36px 0 48px;
+}
+
+/* En-tête */
+
+.header {
+  margin-bottom: 42px;
+  padding-bottom: 22px;
+  border-bottom: 1px solid var(--border);
+}
+
+.brand {
+  gap: 15px;
+}
+
+.brand-icon {
+  width: 54px;
+  height: 54px;
+  border-radius: 17px;
+  background: linear-gradient(145deg, #199878, #116b55);
+  box-shadow: 0 7px 18px rgba(20, 125, 100, 0.20);
+  font-size: 32px;
+}
+
+.brand h1 {
+  color: var(--text);
+  font-size: 23px;
+  font-weight: 750;
+  letter-spacing: -0.7px;
+}
+
+.brand p {
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.status {
+  padding: 9px 13px;
+  border: 1px solid #cce8d9;
+  border-radius: 30px;
+  background: #effaf3;
+  font-weight: 600;
+}
+
+.status-dot {
+  box-shadow: 0 0 0 4px rgba(35, 149, 107, 0.12);
+}
+
+/* Bienvenue */
+
+.welcome {
+  margin-bottom: 34px;
+}
+
+.eyebrow {
+  display: inline-block;
+  padding: 7px 12px;
+  border-radius: 30px;
+  background: var(--primary-light);
+  color: var(--primary-dark);
+  font-size: 11px;
+  letter-spacing: 1.4px;
+}
+
+.welcome h2 {
+  margin: 16px 0 10px;
+  color: var(--text);
+  font-size: clamp(28px, 4vw, 38px);
+  font-weight: 750;
+  letter-spacing: -1.2px;
+}
+
+.welcome > p:not(.eyebrow) {
+  color: var(--muted);
+  font-size: 15px;
+}
+
+/* Navigation des rubriques */
+
+.section-navigation {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 28px 0;
+  padding: 7px;
+  border: 1px solid var(--border);
+  border-radius: 15px;
+  background: #eaf1ed;
+}
+
+.section-navigation button {
+  min-height: 43px;
+  padding: 11px 22px;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  color: #62766b;
+  font-size: 14px;
+  font-weight: 650;
+  transition: all 180ms ease;
+}
+
+.section-navigation button:hover {
+  background: rgba(255, 255, 255, 0.7);
+  color: var(--primary-dark);
+}
+
+.section-navigation button.active {
+  background: #ffffff;
+  color: var(--primary-dark);
+  box-shadow: 0 3px 10px rgba(24, 65, 48, 0.08);
+}
+
+/* Statistiques */
+
+.dashboard-summary {
+  gap: 18px;
+  margin-bottom: 28px;
+}
+
+.stat-card {
+  position: relative;
+  overflow: hidden;
+  padding: 25px;
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  background: linear-gradient(145deg, #ffffff, #f8fcf9);
+  box-shadow: var(--shadow);
+}
+
+.stat-card::after {
+  position: absolute;
+  top: -30px;
+  right: -25px;
+  width: 110px;
+  height: 110px;
+  border-radius: 50%;
+  background: rgba(35, 149, 107, 0.07);
+  content: "";
+}
+
+.stat-label {
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.stat-card h3 {
+  color: var(--primary-dark);
+  font-size: 38px;
+  letter-spacing: -1px;
+}
+
+.stat-description {
+  color: var(--muted);
+}
+
+/* Cartes principales */
+
+.dashboard {
+  gap: 24px;
+}
+
+.card {
+  padding: 28px;
+  border: 1px solid var(--border);
+  border-radius: 19px;
+  background: var(--surface);
+  box-shadow: var(--shadow);
+}
+
+.dashboard > .card {
+  transition: box-shadow 180ms ease, border-color 180ms ease;
+}
+
+.dashboard > .card:hover {
+  border-color: #cbded2;
+  box-shadow: var(--shadow-hover);
+}
+
+.card h3 {
+  margin: 14px 0 18px;
+  color: var(--text);
+  font-size: 21px;
+  font-weight: 750;
+  letter-spacing: -0.4px;
+}
+
+.card h4 {
+  color: var(--text);
+  font-size: 17px;
+  font-weight: 700;
+}
+
+.card h5 {
+  color: var(--primary-dark);
+  font-size: 15px;
+  font-weight: 700;
+}
+
+/* Icônes */
+
+.dashboard > .card > .card-icon {
+  width: 49px;
+  height: 49px;
+  border-radius: 15px;
+  background: var(--primary-light);
+  color: var(--primary);
+}
+
+/* Boutons */
+
+button {
+  transition:
+    background 160ms ease,
+    color 160ms ease,
+    border-color 160ms ease,
+    box-shadow 160ms ease,
+    transform 160ms ease;
+}
+
+.card form button,
+.card > button,
+.header button,
+.auth-card button {
+  min-height: 44px;
+  padding: 11px 19px;
+  border-radius: 11px;
+  background: linear-gradient(135deg, #18896b, #126d55);
+  box-shadow: 0 4px 12px rgba(20, 125, 100, 0.13);
+  font-weight: 650;
+}
+
+.card form button:hover,
+.card > button:hover,
+.header button:hover,
+.auth-card button:hover {
+  background: linear-gradient(135deg, #116f56, #0d5a46);
+  box-shadow: 0 7px 17px rgba(20, 125, 100, 0.19);
+  transform: translateY(-1px);
+}
+
+button:focus-visible {
+  outline: 3px solid rgba(20, 125, 100, 0.25);
+  outline-offset: 3px;
+}
+
+/* Formulaires */
+
+.card form:not(.auth-card form) {
+  gap: 20px 22px;
+  margin-top: 25px;
+}
+
+.card form label {
+  color: #365348;
+  font-size: 13px;
+  font-weight: 650;
+}
+
+.card form input,
+.card form select,
+.card form textarea,
+.auth-card form input,
+.auth-card form select,
+.auth-card form textarea,
+.card > label select {
+  min-height: 47px;
+  padding: 12px 14px;
+  border: 1px solid #d8e4dc;
+  border-radius: 11px;
+  background: #fbfdfc;
+  color: var(--text);
+  font-size: 14px;
+}
+
+.card form input:hover,
+.card form select:hover,
+.card form textarea:hover {
+  border-color: #b7d5c5;
+}
+
+.card form input:focus,
+.card form select:focus,
+.card form textarea:focus,
+.auth-card form input:focus,
+.auth-card form select:focus,
+.auth-card form textarea:focus {
+  border-color: var(--primary);
+  outline: none;
+  background: #ffffff;
+  box-shadow: 0 0 0 4px rgba(20, 125, 100, 0.10);
+}
+
+.card form textarea {
+  min-height: 115px;
+  line-height: 1.6;
+}
+
+/* Liste des patients */
+
+.card ul li {
+  padding: 17px 19px;
+  border: 1px solid var(--border);
+  border-left: 4px solid var(--primary);
+  border-radius: 13px;
+  background: #fbfdfc;
+  line-height: 1.8;
+}
+
+.card ul li:hover {
+  border-color: #c3dfce;
+  background: #f1f8f4;
+}
+
+.patient-name-button {
+  color: var(--primary-dark);
+  font-size: 15px;
+  font-weight: 750;
+}
+
+/* Fiches patients */
+
+.patient-details {
+  margin: 25px 0;
+  padding: 23px;
+  border: 1px solid #dcebe2;
+  border-radius: 16px;
+  background: linear-gradient(145deg, #f7fbf8, #f0f7f2);
+}
+
+.patient-details-header {
+  padding-bottom: 14px;
+  border-bottom: 1px solid #dce8e0;
+}
+
+.patient-details p {
+  color: #53685d;
+  font-size: 14px;
+}
+
+.patient-details p strong {
+  color: var(--text);
+}
+
+/* Historique des consultations */
+
+.consultations-list {
+  display: grid;
+  gap: 17px;
+  margin-top: 20px;
+}
+
+.consultation-item {
+  padding: 22px;
+  border: 1px solid var(--border);
+  border-left: 4px solid var(--primary);
+  border-radius: 15px;
+  background: #ffffff;
+  box-shadow: 0 3px 12px rgba(24, 65, 48, 0.035);
+  transition: box-shadow 180ms ease, transform 180ms ease;
+}
+
+.consultation-item:hover {
+  box-shadow: var(--shadow);
+  transform: translateY(-2px);
+}
+
+.consultation-item h5 {
+  margin-top: 0;
+  line-height: 1.5;
+}
+
+.consultation-item p {
+  color: #5d7167;
+  font-size: 14px;
+  line-height: 1.8;
+  overflow-wrap: anywhere;
+}
+
+.consultation-item p strong {
+  color: var(--text);
+}
+
+/* Ordonnances */
+
+.patient-prescriptions {
+  margin-top: 22px;
+  padding: 19px;
+  border: 1px solid #dcebe2;
+  border-radius: 14px;
+  background: #f7fbf8;
+}
+
+.prescription-summary {
+  margin: 14px 0;
+  padding: 17px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: #ffffff;
+}
+
+.prescription-summary p {
+  margin: 8px 0;
+}
+
+/* Sélecteur de patients */
+
+.patient-selector {
+  margin-top: 20px;
+  padding: 20px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: #f8fbf9;
+}
+
+.patient-selector h4 {
+  margin-top: 0;
+}
+
+.patient-selector ul li {
+  border-left: 0;
+  background: #ffffff;
+}
+
+/* Messages */
+
+.card .success-message,
+.card .form-success,
+.auth-card .form-success {
+  border: 1px solid #c7ead5;
+  border-radius: 11px;
+  background: #effaf3;
+  color: #176b46;
+}
+
+.card .error-message,
+.card .form-error,
+.auth-card .form-error {
+  border: 1px solid #f1cccc;
+  border-radius: 11px;
+  background: #fff3f3;
+  color: #a52626;
+}
+
+/* Authentification */
+
+.auth-card {
+  padding: clamp(28px, 5vw, 44px);
+  border: 1px solid var(--border);
+  border-radius: 22px;
+  box-shadow: 0 18px 55px rgba(24, 65, 48, 0.09);
+}
+
+.auth-card h3 {
+  margin-bottom: 26px;
+  font-size: 25px;
+}
+
+.auth-card form {
+  gap: 13px;
+}
+
+.auth-card form label {
+  margin-top: 8px;
+  color: #365348;
+}
+
+.auth-card form button {
+  min-height: 49px;
+  margin-top: 20px;
+}
+
+/* Pied de page */
+
+footer {
+  margin-top: 45px;
+  padding-top: 20px;
+  border-top: 1px solid var(--border);
+  color: #83938a;
+}
+
+/* Animations discrètes */
+
+@keyframes fadeInMedical {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.dashboard > .card,
+.auth-card {
+  animation: fadeInMedical 250ms ease both;
+}
+
+/* Responsive */
+
+@media (max-width: 720px) {
+  .app {
+    width: calc(100% - 28px);
+    padding: 22px 0;
+  }
+
+  .header {
+    flex-wrap: wrap;
+    gap: 16px;
+    margin-bottom: 30px;
+  }
+
+  .section-navigation {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 5px;
+  }
+
+  .section-navigation button {
+    padding: 10px 5px;
+    font-size: 12px;
+  }
+
+  .card {
+    padding: 21px;
+  }
+}
+
+@media (max-width: 600px) {
+  .app {
+    width: calc(100% - 24px);
+  }
+
+  .dashboard-summary {
+    grid-template-columns: 1fr;
+  }
+
+  .card form:not(.auth-card form) {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .card form button {
+    width: 100%;
+  }
+
+  .patient-details {
+    padding: 17px;
+  }
+
+  .consultation-item {
+    padding: 17px;
+  }
+}
+
+/* Respect de l'impression des ordonnances */
+
+@media print {
+  body {
+    background: #ffffff !important;
+  }
+
+  .ordonnance-print {
+    box-shadow: none !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* CORRECTION — OCCUPATION DE L'ESPACE DISPONIBLE */
+
+.dashboard {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  width: 100%;
+  gap: 24px;
+}
+
+.dashboard > .card {
+  width: 100%;
+  min-width: 0;
+}
+
+/* Boutons présents dans les fiches patients */
+.patient-details button,
+.patient-details-header button {
+  min-height: 40px;
+  padding: 9px 15px;
+  border: 1px solid #d5e5dc;
+  border-radius: 9px;
+  background: #ffffff;
+  color: #176b55;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.patient-details button:hover {
+  border-color: #147d64;
+  background: #eaf5ef;
+}
+
+/* Séparation des informations médicales */
+.patient-details hr {
+  margin: 22px 0;
+  border: 0;
+  border-top: 1px solid #dce8e0;
+}
+
+@media (max-width: 600px) {
+  .dashboard {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* =====================================================
+   CARNET MÉDICAL — RUBRIQUE PATIENTS
+   AMÉLIORATION VISUELLE UNIQUEMENT
+   ===================================================== */
+
+/* En-tête de la rubrique */
+.dashboard > .card > h3 {
+  font-size: 23px;
+  letter-spacing: -0.5px;
+}
+
+/* Compteur de patients */
+.dashboard > .card > p:not(.success-message):not(.error-message) {
+  color: #71847a;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+/* Liste des patients */
+.dashboard > .card > ul {
+  gap: 14px;
+  margin-top: 22px;
+}
+
+.dashboard > .card > ul > li {
+  position: relative;
+  padding: 19px 21px;
+  border: 1px solid #e1ebe5;
+  border-left: 4px solid #16836a;
+  border-radius: 14px;
+  background: #ffffff;
+  box-shadow: 0 3px 12px rgba(24, 65, 48, 0.035);
+  transition: all 180ms ease;
+}
+
+.dashboard > .card > ul > li:hover {
+  border-color: #bcdccc;
+  border-left-color: #16836a;
+  background: #f7fbf8;
+  box-shadow: 0 7px 18px rgba(24, 65, 48, 0.07);
+  transform: translateY(-2px);
+}
+
+.dashboard > .card > ul > li strong {
+  margin-bottom: 7px;
+  color: #19372e;
+  font-size: 16px;
+}
+
+/* Fiche individuelle */
+.patient-details {
+  margin-top: 27px;
+  padding: 27px;
+  border: 1px solid #d9e9df;
+  border-radius: 19px;
+  background: linear-gradient(145deg, #f8fcf9, #f0f7f2);
+  box-shadow: 0 5px 18px rgba(24, 65, 48, 0.045);
+}
+
+/* En-tête de la fiche */
+.patient-details-header {
+  align-items: center;
+  margin-bottom: 23px;
+  padding-bottom: 18px;
+  border-bottom: 1px solid #dce9e1;
+}
+
+.patient-details-header h4 {
+  color: #176b55;
+  font-size: 20px;
+  font-weight: 750;
+  letter-spacing: -0.4px;
+}
+
+/* Boutons de la fiche */
+.patient-details button {
+  min-height: 40px;
+  padding: 9px 15px;
+  border: 1px solid #d4e5da;
+  border-radius: 10px;
+  background: #ffffff;
+  color: #176b55;
+  font-size: 13px;
+  font-weight: 650;
+  box-shadow: none;
+}
+
+.patient-details button:hover {
+  border-color: #16836a;
+  background: #e9f5ee;
+  color: #105e49;
+  transform: translateY(-1px);
+}
+
+/* Informations personnelles */
+.patient-details > p {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin: 0;
+  padding: 13px 4px;
+  border-bottom: 1px solid rgba(220, 233, 225, 0.75);
+  color: #65786e;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.patient-details > p strong {
+  color: #24483a;
+  font-weight: 700;
+}
+
+/* Séparation des sections */
+.patient-details hr {
+  margin: 26px 0;
+  border: 0;
+  border-top: 1px solid #d9e8df;
+}
+
+/* Titres de l'historique médical */
+.patient-details > h4 {
+  margin: 24px 0 17px;
+  color: #176b55;
+  font-size: 19px;
+  font-weight: 750;
+}
+
+/* Historique des consultations */
+.consultations-list {
+  display: grid;
+  gap: 17px;
+  margin-top: 20px;
+}
+
+.patient-details .consultation-item {
+  padding: 22px;
+  border: 1px solid #e0eae3;
+  border-left: 4px solid #16836a;
+  border-radius: 14px;
+  background: #ffffff;
+  box-shadow: 0 3px 12px rgba(24, 65, 48, 0.035);
+}
+
+.patient-details .consultation-item h5 {
+  margin: 0 0 15px;
+  color: #176b55;
+  font-size: 16px;
+  line-height: 1.5;
+}
+
+.patient-details .consultation-item p {
+  color: #66786f;
+  font-size: 13px;
+  line-height: 1.8;
+}
+
+.patient-details .consultation-item p strong {
+  color: #29483c;
+}
+
+/* Ordonnances dans l'historique */
+.patient-details .consultation-item > h5:not(:first-child) {
+  margin-top: 22px;
+  padding-top: 17px;
+  border-top: 1px solid #e7eee9;
+}
+
+.patient-details .prescription-summary {
+  margin: 12px 0;
+  padding: 17px;
+  border: 1px solid #dcebe2;
+  border-radius: 12px;
+  background: #f7fbf8;
+  box-shadow: none;
+}
+
+.patient-details .prescription-summary p {
+  margin: 7px 0;
+}
+
+/* Petits écrans */
+@media (max-width: 600px) {
+  .patient-details {
+    padding: 17px;
+  }
+
+  .patient-details-header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .patient-details-header button {
+    width: 100%;
+  }
+
+  .patient-details > p {
+    font-size: 13px;
+  }
+
+  .patient-details .consultation-item {
+    padding: 16px;
+  }
+}
+/* =========================================
+   CONSULTATIONS — AMÉLIORATION VISUELLE
+   CSS uniquement : aucune logique modifiée
+========================================= */
+
+/* Fiche du patient sélectionné */
+#root .patient-details {
+  background: #f7faf8;
+  border: 1px solid #e1ebe5;
+  border-radius: 16px;
+  padding: 22px;
+  margin: 20px 0;
+}
+
+#root .patient-details h4 {
+  color: #174d3b;
+  margin-top: 0;
+  margin-bottom: 18px;
+}
+
+#root .patient-details p {
+  color: #52645b;
+  line-height: 1.7;
+}
+
+/* En-tête de la rubrique */
+#root .patient-details-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin: 26px 0 18px;
+}
+
+#root .patient-details-header h4 {
+  margin: 0;
+}
+
+/* Formulaire de consultation */
+#root .card form {
+  background: #fbfdfc;
+  border: 1px solid #e5ede8;
+  border-radius: 16px;
+  padding: 24px;
+  margin: 20px 0;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+}
+
+#root .card form label {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  color: #34483d;
+  font-size: 0.92rem;
+  font-weight: 600;
+}
+
+#root .card form label textarea,
+#root .card form label input,
+#root .card form label select {
+  width: 100%;
+  box-sizing: border-box;
+  border: 1px solid #d8e3dc;
+  border-radius: 10px;
+  padding: 12px 14px;
+  background: #fff;
+  color: #24382e;
+  font: inherit;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+#root .card form label textarea {
+  min-height: 105px;
+  resize: vertical;
+}
+
+#root .card form label textarea:focus,
+#root .card form label input:focus,
+#root .card form label select:focus {
+  outline: none;
+  border-color: #27845e;
+  box-shadow: 0 0 0 3px rgba(39, 132, 94, 0.12);
+}
+
+/* Bouton d'enregistrement du formulaire */
+#root .card form > button[type="submit"] {
+  grid-column: 1 / -1;
+  justify-self: start;
+  min-width: 230px;
+  margin-top: 6px;
+}
+
+/* Historique des consultations */
+#root .consultations-list {
+  display: grid;
+  gap: 18px;
+  margin-top: 20px;
+}
+
+#root .consultation-item {
+  background: #fff;
+  border: 1px solid #e2eae5;
+  border-left: 4px solid #27845e;
+  border-radius: 14px;
+  padding: 22px;
+  margin: 0;
+  box-shadow: 0 4px 14px rgba(25, 55, 39, 0.045);
+}
+
+#root .consultation-item h5 {
+  color: #174d3b;
+  font-size: 1rem;
+  line-height: 1.5;
+  margin: 0 0 14px;
+}
+
+#root .consultation-item p {
+  color: #52645b;
+  line-height: 1.7;
+  margin: 9px 0;
+  overflow-wrap: anywhere;
+}
+
+#root .consultation-item p strong {
+  color: #30483a;
+}
+
+/* Ordonnances associées */
+#root .patient-prescriptions {
+  background: #f7faf8;
+  border: 1px solid #e3ece6;
+  border-radius: 12px;
+  padding: 18px;
+  margin-top: 20px;
+}
+
+#root .patient-prescriptions h5 {
+  margin-bottom: 14px;
+}
+
+#root .prescription-summary {
+  background: #fff;
+  border: 1px solid #e3ebe6;
+  border-radius: 10px;
+  padding: 16px;
+  margin-top: 12px;
+}
+
+/* Messages de retour */
+#root .success-message,
+#root .error-message {
+  border-radius: 10px;
+  padding: 12px 15px;
+  line-height: 1.5;
+}
+
+/* Adaptation mobile */
+@media (max-width: 700px) {
+  #root .card form {
+    grid-template-columns: minmax(0, 1fr);
+    padding: 17px;
+  }
+
+  #root .card form > button[type="submit"] {
+    width: 100%;
+    min-width: 0;
+  }
+
+  #root .patient-details,
+  #root .consultation-item {
+    padding: 17px;
+  }
+
+  #root .patient-details-header {
+    align-items: flex-start;
+  }
+}
+/* =========================================
+   ORDONNANCES — AMÉLIORATION VISUELLE
+   CSS uniquement
+========================================= */
+
+/* Sélection de consultation */
+#root .card > label {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  margin: 20px 0;
+  color: #34483d;
+  font-weight: 600;
+}
+
+#root .card > label select {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 13px 15px;
+  border: 1px solid #d8e3dc;
+  border-radius: 10px;
+  background: #fff;
+  color: #24382e;
+  font: inherit;
+}
+
+/* Formulaire d'ordonnance */
+#root .card form:has(.patient-details) {
+  display: block;
+}
+
+#root .card form:has(.patient-details) > label {
+  margin-bottom: 18px;
+}
+
+#root .card form:has(.patient-details) > h4 {
+  color: #174d3b;
+  margin: 24px 0 16px;
+}
+
+/* Carte de chaque médicament */
+#root .card form .patient-details {
+  background: #f7faf8;
+  border: 1px solid #dfeae3;
+  border-radius: 14px;
+  padding: 22px;
+  margin: 18px 0;
+}
+
+#root .card form .patient-details h5 {
+  color: #174d3b;
+  margin: 0 0 18px;
+  font-size: 1rem;
+}
+
+/* Champs du médicament */
+#root .card form .patient-details label {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 14px 0;
+  color: #34483d;
+  font-size: 0.92rem;
+  font-weight: 600;
+}
+
+#root .card form .patient-details input,
+#root .card form .patient-details textarea {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 12px 14px;
+  border: 1px solid #d8e3dc;
+  border-radius: 10px;
+  background: #fff;
+  color: #24382e;
+  font: inherit;
+}
+
+#root .card form .patient-details textarea {
+  min-height: 90px;
+  resize: vertical;
+}
+
+#root .card form .patient-details input:focus,
+#root .card form .patient-details textarea:focus {
+  outline: none;
+  border-color: #27845e;
+  box-shadow: 0 0 0 3px rgba(39, 132, 94, 0.12);
+}
+
+/* Ordonnances enregistrées */
+#root .consultations-list .consultation-item {
+  border-left-color: #27845e;
+}
+
+#root .consultation-item > h5 {
+  color: #174d3b;
+}
+
+/* Séparation visuelle des médicaments */
+#root .consultation-item > div:not(.patient-prescriptions) {
+  padding: 12px 14px;
+  margin: 12px 0;
+  background: #f7faf8;
+  border: 1px solid #e5ede8;
+  border-radius: 10px;
+}
+
+/* Boutons de formulaire */
+#root .card form .patient-details button {
+  margin-top: 10px;
+}
+
+/* Adaptation mobile */
+@media (max-width: 700px) {
+  #root .card form .patient-details {
+    padding: 16px;
+  }
+
+  #root .card form .patient-details label {
+    margin: 12px 0;
+  }
+
+  #root .card form .patient-details input,
+  #root .card form .patient-details textarea {
+    font-size: 16px;
+  }
+}
+/* =========================================
+   BOUTONS DES ORDONNANCES
+   CSS uniquement — aucune logique modifiée
+========================================= */
+
+#root .consultation-item:has(> h5:nth-of-type(2)) > button {
+  padding: 11px 18px;
+  margin: 12px 10px 4px 0;
+  border: 1px solid #27845e;
+  border-radius: 9px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+/* Modifier l'ordonnance */
+#root .consultation-item:has(> h5:nth-of-type(2)) > button:first-of-type {
+  background: #27845e;
+  color: #fff;
+}
+
+#root .consultation-item:has(> h5:nth-of-type(2)) > button:first-of-type:hover {
+  background: #1d6849;
+  border-color: #1d6849;
+  transform: translateY(-1px);
+}
+
+/* Imprimer l'ordonnance */
+#root .consultation-item:has(> h5:nth-of-type(2)) > button:last-of-type {
+  background: #fff;
+  color: #27845e;
+}
+
+#root .consultation-item:has(> h5:nth-of-type(2)) > button:last-of-type:hover {
+  background: #edf6f0;
+  transform: translateY(-1px);
+}
+
+/* Accessibilité clavier */
+#root .consultation-item:has(> h5:nth-of-type(2)) > button:focus-visible {
+  outline: 3px solid rgba(39, 132, 94, 0.25);
+  outline-offset: 3px;
+}
+
+/* Adaptation mobile */
+@media (max-width: 700px) {
+  #root .consultation-item:has(> h5:nth-of-type(2)) > button {
+    width: 100%;
+    margin: 8px 0;
+  }
+}
+/* Bouton Modifier une consultation */
+#root .consultations-list .consultation-item > button {
+  padding: 11px 18px;
+  margin: 12px 10px 4px 0;
+  background: #27845e;
+  color: #fff;
+  border: 1px solid #27845e;
+  border-radius: 9px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+#root .consultations-list .consultation-item > button:hover {
+  background: #1d6849;
+  border-color: #1d6849;
+  transform: translateY(-1px);
+}
+
+#root .consultations-list .consultation-item > button:focus-visible {
+  outline: 3px solid rgba(39, 132, 94, 0.25);
+  outline-offset: 3px;
+}
+/* =========================================
+   NAVIGATION PRINCIPALE
+   CSS uniquement
+========================================= */
+
+#root .section-navigation {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px;
+  margin: 28px 0;
+  background: #f1f6f3;
+  border: 1px solid #e0eae3;
+  border-radius: 14px;
+}
+
+#root .section-navigation button {
+  flex: 1;
+  padding: 14px 20px;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  background: transparent;
+  color: #52665a;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+#root .section-navigation button:hover {
+  background: #e4eee7;
+  color: #174d3b;
+}
+
+#root .section-navigation button.active {
+  background: #27845e;
+  color: #fff;
+  box-shadow: 0 3px 8px rgba(39, 132, 94, 0.18);
+}
+
+#root .section-navigation button:focus-visible {
+  outline: 3px solid rgba(39, 132, 94, 0.25);
+  outline-offset: 3px;
+}
+
+/* Adaptation mobile */
+@media (max-width: 600px) {
+  #root .section-navigation {
+    gap: 6px;
+    padding: 6px;
+  }
+
+  #root .section-navigation button {
+    padding: 12px 6px;
+    font-size: 0.82rem;
+  }
+}

@@ -3,19 +3,43 @@ const crypto = require('node:crypto');
 const argon2 = require('argon2');
 const { app, BrowserWindow, ipcMain } = require('electron');
 const path = require('node:path');
+const fs = require('node:fs');
 const Database = require('better-sqlite3');
 
 let db;
+let databasePath;
 let sessionMedecin = null;
 
-function connectDatabase() {
-  // Utilise la base existante à la racine du projet en développement.
-  const databasePath = path.join(app.getAppPath(), 'Med_notedb.db');
 
-  // Ouvre la base existante sans supprimer ni recréer ses tables.
+function connectDatabase() {
+  const dossierDonnees = app.isPackaged
+    ? app.getPath('userData')
+    : app.getAppPath();
+
+  fs.mkdirSync(dossierDonnees, { recursive: true });
+
+  databasePath = path.join(dossierDonnees, 'Med_notedb.db');
+
+  const nouvelleBase = !fs.existsSync(databasePath);
+
   db = new Database(databasePath);
 
-  // Vérifie l'intégrité de la base.
+  db.pragma('foreign_keys = ON');
+
+  if (nouvelleBase) {
+    const schemaPath = path.join(
+      __dirname,
+      'database',
+      'schema.sql'
+    );
+
+    const schema = fs.readFileSync(schemaPath, 'utf8');
+
+    db.exec(schema);
+
+    console.log('Structure SQLite initialisée.');
+  }
+
   const integrity = db.pragma('quick_check', { simple: true });
 
   if (integrity !== 'ok') {
@@ -25,7 +49,62 @@ function connectDatabase() {
   console.log('Base SQLite connectée :', databasePath);
 }
 
+async function sauvegarderBase() {
+  if (!db || !databasePath) {
+    throw new Error('Base de données non disponible pour la sauvegarde.');
+  }
+
+  const backupPath = path.join(
+    path.dirname(databasePath),
+    'Med_notedb.backup.db'
+  );
+
+  const temporaryPath = `${backupPath}.tmp`;
+
+  try {
+    // Crée une copie cohérente de la base ouverte.
+    await db.backup(temporaryPath);
+
+    // Vérifie que la copie peut être ouverte et est intègre.
+    const verification = new Database(temporaryPath, {
+      readonly: true,
+      fileMustExist: true
+    });
+
+    try {
+      const integrity = verification.pragma('integrity_check', {
+        simple: true
+      });
+
+      if (integrity !== 'ok') {
+        throw new Error(`Sauvegarde invalide : ${integrity}`);
+      }
+    } finally {
+      verification.close();
+    }
+
+    // Remplace l'ancienne sauvegarde seulement après validation.
+    fs.renameSync(temporaryPath, backupPath);
+
+    console.log('Sauvegarde automatique réussie :', backupPath);
+  } catch (error) {
+    console.error('Échec de la sauvegarde automatique :', error);
+
+    // Nettoie uniquement le fichier temporaire en cas d'échec.
+    try {
+      if (fs.existsSync(temporaryPath)) {
+        fs.unlinkSync(temporaryPath);
+      }
+    } catch (cleanupError) {
+      console.error('Nettoyage temporaire impossible :', cleanupError);
+    }
+
+    throw error;
+  }
+}
+
 function registerDatabaseHandlers() {
+    console.log('Enregistrement des handlers IPC...');
 
   // Vérifie si un compte médecin existe déjà.
   ipcMain.handle('auth:setup-status', () => {
@@ -94,7 +173,16 @@ function registerDatabaseHandlers() {
 
     createFirstDoctor();
 
-    return { success: true };
+try {
+  await sauvegarderBase();
+} catch (error) {
+  console.error(
+    'Le compte est créé, mais la sauvegarde a échoué :',
+    error
+  );
+}
+
+return { success: true };
   });
 
   // Vérifie les identifiants d’un médecin.
@@ -174,7 +262,7 @@ function registerDatabaseHandlers() {
     `).all(medecinId.trim());
   });
 
-  ipcMain.handle('patients:create', (_event, patient) => {
+  ipcMain.handle('patients:create', async (_event, patient) => {
     if (!sessionMedecin) {
       throw new Error('Vous devez vous connecter pour enregistrer un patient.');
     }
@@ -269,8 +357,478 @@ function registerDatabaseHandlers() {
       patient.adresse || null
     );
 
-    return { id, message: 'Patient enregistré.' };
+    try {
+  await sauvegarderBase();
+} catch (error) {
+  console.error(
+    'Le patient est enregistré, mais la sauvegarde a échoué :',
+    error
+  );
+}
+
+return { id, message: 'Patient enregistré.' };
   });
+
+  // Consultations : vérifier que le médecin est connecté.
+  function verifierAccesConsultations() {
+    if (!db) {
+      throw new Error('La base de données n’est pas connectée.');
+    }
+
+    if (!sessionMedecin) {
+      throw new Error('Vous devez vous connecter pour accéder aux consultations.');
+    }
+  }
+
+  // Consultations : lister celles d’un patient appartenant au médecin connecté.
+  ipcMain.handle('consultations:list', (_event, patientId) => {
+    verifierAccesConsultations();
+
+    if (typeof patientId !== 'string' || !patientId.trim()) {
+      throw new Error('Identifiant du patient invalide.');
+    }
+
+    const patient = db.prepare(`
+      SELECT id FROM patients
+      WHERE id = ? AND medecin_id = ? AND archive = 0
+    `).get(patientId.trim(), sessionMedecin.id);
+
+    if (!patient) {
+      throw new Error('Patient introuvable ou accès non autorisé.');
+    }
+
+    return db.prepare(`
+      SELECT *
+      FROM consultations
+      WHERE patient_id = ? AND medecin_id = ?
+      ORDER BY date_consultation DESC, date_creation DESC
+    `).all(patient.id, sessionMedecin.id);
+  });
+
+  // Consultations : créer une consultation.
+  ipcMain.handle('consultations:create', async (_event, consultation) => {
+    verifierAccesConsultations();
+
+    if (!consultation || typeof consultation !== 'object' || Array.isArray(consultation)) {
+      throw new Error('Données de consultation invalides.');
+    }
+
+    const patientId = typeof consultation.patient_id === 'string'
+      ? consultation.patient_id.trim()
+      : '';
+
+    const dateConsultation = typeof consultation.date_consultation === 'string'
+      ? consultation.date_consultation.trim()
+      : '';
+
+    const motif = typeof consultation.motif === 'string'
+      ? consultation.motif.trim()
+      : '';
+
+    if (!patientId || !dateConsultation || !motif) {
+      throw new Error('Le patient, la date et le motif sont obligatoires.');
+    }
+
+    const patient = db.prepare(`
+      SELECT id FROM patients
+      WHERE id = ? AND medecin_id = ? AND archive = 0
+    `).get(patientId, sessionMedecin.id);
+
+    if (!patient) {
+      throw new Error('Patient introuvable ou accès non autorisé.');
+    }
+
+    const statut = consultation.statut || 'brouillon';
+
+    if (!['brouillon', 'finalisee'].includes(statut)) {
+      throw new Error('Statut de consultation invalide.');
+    }
+
+    const champs = [
+      'symptomes',
+      'constantes',
+      'examen_clinique',
+      'diagnostic',
+      'examens_complementaires',
+      'recommandations'
+    ];
+
+    const valeurs = champs.map((champ) => {
+      const valeur = consultation[champ];
+      return typeof valeur === 'string' && valeur.trim()
+        ? valeur.trim()
+        : null;
+    });
+
+    const id = crypto.randomUUID();
+
+    db.prepare(`
+      INSERT INTO consultations (
+        id, patient_id, medecin_id, date_consultation, motif,
+        symptomes, constantes, examen_clinique, diagnostic,
+        examens_complementaires, recommandations, statut
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `).run(
+      id,
+      patientId,
+      sessionMedecin.id,
+      dateConsultation,
+      motif,
+      ...valeurs,
+      statut
+    );
+
+    try {
+  await sauvegarderBase();
+} catch (error) {
+  console.error(
+    'La consultation est enregistrée, mais la sauvegarde a échoué :',
+    error
+  );
+}
+
+return { id, message: 'Consultation enregistrée.' };
+  });
+
+  // Consultations : modifier une consultation existante.
+  ipcMain.handle('consultations:update', async (_event, consultation) => {
+    verifierAccesConsultations();
+
+    if (!consultation || typeof consultation !== 'object' || Array.isArray(consultation)) {
+      throw new Error('Données de consultation invalides.');
+    }
+
+    const id = typeof consultation.id === 'string'
+      ? consultation.id.trim()
+      : '';
+
+    const patientId = typeof consultation.patient_id === 'string'
+      ? consultation.patient_id.trim()
+      : '';
+
+    const dateConsultation = typeof consultation.date_consultation === 'string'
+      ? consultation.date_consultation.trim()
+      : '';
+
+    const motif = typeof consultation.motif === 'string'
+      ? consultation.motif.trim()
+      : '';
+
+    if (!id || !patientId || !dateConsultation || !motif) {
+      throw new Error('Identifiant, patient, date et motif sont obligatoires.');
+    }
+
+    const existante = db.prepare(`
+      SELECT id FROM consultations
+      WHERE id = ? AND patient_id = ? AND medecin_id = ?
+    `).get(id, patientId, sessionMedecin.id);
+
+    if (!existante) {
+      throw new Error('Consultation introuvable ou accès non autorisé.');
+    }
+
+    const statut = consultation.statut || 'brouillon';
+
+    if (!['brouillon', 'finalisee'].includes(statut)) {
+      throw new Error('Statut de consultation invalide.');
+    }
+
+    const champs = [
+      'symptomes',
+      'constantes',
+      'examen_clinique',
+      'diagnostic',
+      'examens_complementaires',
+      'recommandations'
+    ];
+
+    const valeurs = champs.map((champ) => {
+      const valeur = consultation[champ];
+      return typeof valeur === 'string' && valeur.trim()
+        ? valeur.trim()
+        : null;
+    });
+
+    db.prepare(`
+      UPDATE consultations
+      SET date_consultation = ?,
+          motif = ?,
+          symptomes = ?,
+          constantes = ?,
+          examen_clinique = ?,
+          diagnostic = ?,
+          examens_complementaires = ?,
+          recommandations = ?,
+          statut = ?,
+          date_modification = CURRENT_TIMESTAMP
+      WHERE id = ? AND patient_id = ? AND medecin_id = ?
+    `).run(
+      dateConsultation,
+      motif,
+      ...valeurs,
+      statut,
+      id,
+      patientId,
+      sessionMedecin.id
+    );
+
+    try {
+  await sauvegarderBase();
+} catch (error) {
+  console.error(
+    'La consultation est modifiée, mais la sauvegarde a échoué :',
+    error
+  );
+}
+
+return { success: true, message: 'Consultation modifiée.' };
+  });
+
+  // Ordonnances : vérifier que la consultation appartient au médecin connecté.
+  function verifierConsultationOrdonnance(consultationId) {
+    if (typeof consultationId !== 'string' || !consultationId.trim()) {
+      throw new Error('Identifiant de consultation invalide.');
+    }
+
+    const consultation = db.prepare(`
+      SELECT id
+      FROM consultations
+      WHERE id = ? AND medecin_id = ?
+    `).get(consultationId.trim(), sessionMedecin.id);
+
+    if (!consultation) {
+      throw new Error('Consultation introuvable ou accès non autorisé.');
+    }
+
+    return consultation.id;
+  }
+
+  // Ordonnances : vérifier et normaliser les médicaments.
+  function normaliserLignesPrescription(lignes) {
+    if (!Array.isArray(lignes) || lignes.length === 0) {
+      throw new Error('Ajoutez au moins un médicament à l’ordonnance.');
+    }
+
+    return lignes.map((ligne) => {
+      if (!ligne || typeof ligne !== 'object' || Array.isArray(ligne)) {
+        throw new Error('Une ligne de prescription est invalide.');
+      }
+
+      const medicament = typeof ligne.medicament === 'string'
+        ? ligne.medicament.trim()
+        : '';
+
+      const posologie = typeof ligne.posologie === 'string'
+        ? ligne.posologie.trim()
+        : '';
+
+      if (!medicament || !posologie) {
+        throw new Error('Le nom du médicament et la posologie sont obligatoires.');
+      }
+
+      const texteOptionnel = (valeur) =>
+        typeof valeur === 'string' && valeur.trim()
+          ? valeur.trim()
+          : null;
+
+      return {
+        id: crypto.randomUUID(),
+        medicament,
+        dosage: texteOptionnel(ligne.dosage),
+        posologie,
+        voie_administration: texteOptionnel(ligne.voie_administration),
+        duree: texteOptionnel(ligne.duree),
+        quantite: texteOptionnel(ligne.quantite),
+        instructions: texteOptionnel(ligne.instructions)
+      };
+    });
+  }
+
+  // Ordonnances : lister les ordonnances et leurs médicaments.
+  ipcMain.handle('ordonnances:list', (_event, consultationId) => {
+    verifierAccesConsultations();
+
+    const idConsultation = verifierConsultationOrdonnance(consultationId);
+
+    const ordonnances = db.prepare(`
+      SELECT id, consultation_id, date_creation, instructions
+      FROM ordonnances
+      WHERE consultation_id = ?
+      ORDER BY date_creation DESC
+    `).all(idConsultation);
+
+    const obtenirLignes = db.prepare(`
+      SELECT id, ordonnance_id, medicament, dosage, posologie,
+             voie_administration, duree, quantite, instructions
+      FROM lignes_prescription
+      WHERE ordonnance_id = ?
+    `);
+
+    return ordonnances.map((ordonnance) => ({
+      ...ordonnance,
+      lignes: obtenirLignes.all(ordonnance.id)
+    }));
+  });
+
+  // Ordonnances : créer une ordonnance et ses médicaments.
+  ipcMain.handle('ordonnances:create', async (_event, ordonnance) => {
+    verifierAccesConsultations();
+
+    if (!ordonnance || typeof ordonnance !== 'object' || Array.isArray(ordonnance)) {
+      throw new Error('Données d’ordonnance invalides.');
+    }
+
+    const consultationId = verifierConsultationOrdonnance(
+      ordonnance.consultation_id
+    );
+
+    const lignes = normaliserLignesPrescription(ordonnance.lignes);
+
+    const instructions =
+      typeof ordonnance.instructions === 'string' && ordonnance.instructions.trim()
+        ? ordonnance.instructions.trim()
+        : null;
+
+    const id = crypto.randomUUID();
+
+    const enregistrer = db.transaction(() => {
+      db.prepare(`
+        INSERT INTO ordonnances (id, consultation_id, instructions)
+        VALUES (?, ?, ?)
+      `).run(id, consultationId, instructions);
+
+      const insererLigne = db.prepare(`
+        INSERT INTO lignes_prescription (
+          id, ordonnance_id, medicament, dosage, posologie,
+          voie_administration, duree, quantite, instructions
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+      `);
+
+      for (const ligne of lignes) {
+        insererLigne.run(
+          ligne.id,
+          id,
+          ligne.medicament,
+          ligne.dosage,
+          ligne.posologie,
+          ligne.voie_administration,
+          ligne.duree,
+          ligne.quantite,
+          ligne.instructions
+        );
+      }
+    });
+
+    enregistrer();
+
+try {
+  await sauvegarderBase();
+} catch (error) {
+  console.error(
+    'L’ordonnance est enregistrée, mais la sauvegarde a échoué :',
+    error
+  );
+}
+
+return {
+  success: true,
+  id,
+  message: 'Ordonnance enregistrée.'
+};
+  });
+
+  // Ordonnances : modifier une ordonnance et remplacer ses médicaments.
+  ipcMain.handle('ordonnances:update', async (_event, ordonnance) => {
+    verifierAccesConsultations();
+
+    if (!ordonnance || typeof ordonnance !== 'object' || Array.isArray(ordonnance)) {
+      throw new Error('Données d’ordonnance invalides.');
+    }
+
+    const id = typeof ordonnance.id === 'string'
+      ? ordonnance.id.trim()
+      : '';
+
+    if (!id) {
+      throw new Error('Identifiant d’ordonnance obligatoire.');
+    }
+
+    const consultationId = verifierConsultationOrdonnance(
+      ordonnance.consultation_id
+    );
+
+    const existante = db.prepare(`
+      SELECT o.id
+      FROM ordonnances o
+      JOIN consultations c ON c.id = o.consultation_id
+      WHERE o.id = ?
+        AND o.consultation_id = ?
+        AND c.medecin_id = ?
+    `).get(id, consultationId, sessionMedecin.id);
+
+    if (!existante) {
+      throw new Error('Ordonnance introuvable ou accès non autorisé.');
+    }
+
+    const lignes = normaliserLignesPrescription(ordonnance.lignes);
+
+    const instructions =
+      typeof ordonnance.instructions === 'string' && ordonnance.instructions.trim()
+        ? ordonnance.instructions.trim()
+        : null;
+
+    const modifier = db.transaction(() => {
+      db.prepare(`
+        UPDATE ordonnances
+        SET instructions = ?
+        WHERE id = ?
+      `).run(instructions, id);
+
+      db.prepare(`
+        DELETE FROM lignes_prescription
+        WHERE ordonnance_id = ?
+      `).run(id);
+
+      const insererLigne = db.prepare(`
+        INSERT INTO lignes_prescription (
+          id, ordonnance_id, medicament, dosage, posologie,
+          voie_administration, duree, quantite, instructions
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+      `);
+
+      for (const ligne of lignes) {
+        insererLigne.run(
+          ligne.id,
+          id,
+          ligne.medicament,
+          ligne.dosage,
+          ligne.posologie,
+          ligne.voie_administration,
+          ligne.duree,
+          ligne.quantite,
+          ligne.instructions
+        );
+      }
+    });
+
+    modifier();
+
+try {
+  await sauvegarderBase();
+} catch (error) {
+  console.error(
+    'L’ordonnance est modifiée, mais la sauvegarde a échoué :',
+    error
+  );
+}
+
+return {
+  success: true,
+  id,
+  message: 'Ordonnance modifiée.'
+};
+  });
+
 
 }
 
@@ -295,13 +853,21 @@ function createWindow() {
   }
 }
 
-app.whenReady().then(() => {
+
+app.whenReady().then(async () => {
   try {
     connectDatabase();
     registerDatabaseHandlers();
+
+    console.log('Handlers IPC enregistrés.');
+    console.log('Début de la sauvegarde...');
+
+    await sauvegarderBase();
+
+    console.log('Sauvegarde terminée, ouverture de la fenêtre...');
     createWindow();
   } catch (error) {
-    console.error('Erreur de connexion à SQLite :', error);
+    console.error('Erreur au démarrage de Carnet Médical :', error);
     app.quit();
     return;
   }
@@ -312,6 +878,7 @@ app.whenReady().then(() => {
     }
   });
 });
+
 
 app.on('before-quit', () => {
   if (db) {
