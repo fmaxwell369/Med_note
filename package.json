@@ -5,9 +5,9 @@
   "main": "electron/main.cjs",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "vite",
-    "build": "vite build",
-    "start": "electron .",
+    "dev": "node init && vite",
+    "build": "node init && vite build",
+    "start": "node init && electron .",
     "app": "concurrently -k \"vite --host 127.0.0.1\" \"wait-on http://127.0.0.1:5173 && electron .\"",
     "dist": "npm run build && electron-builder --win nsis"
   },
@@ -38,7 +38,7 @@
   },
   "build": {
     "appId": "com.mednote.app",
-    "productName": "Méd_Note",
+    "productName": "M\u00e9d_Note",
     "directories": {
       "output": "release"
     },
